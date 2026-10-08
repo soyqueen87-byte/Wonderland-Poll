@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS polls (id TEXT PRIMARY KEY,title TEXT NOT NULL,description TEXT NOT NULL DEFAULT '',mode TEXT NOT NULL CHECK(mode IN ('single','multiple')),deadline TIMESTAMPTZ,closed BOOLEAN NOT NULL DEFAULT FALSE,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
+CREATE TABLE IF NOT EXISTS poll_options (id TEXT PRIMARY KEY,poll_id TEXT NOT NULL REFERENCES polls(id) ON DELETE CASCADE,label TEXT NOT NULL,position INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS responses (id TEXT PRIMARY KEY,poll_id TEXT NOT NULL REFERENCES polls(id) ON DELETE CASCADE,device_hash TEXT,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),UNIQUE(poll_id,device_hash));
+CREATE TABLE IF NOT EXISTS response_answers (response_id TEXT NOT NULL REFERENCES responses(id) ON DELETE CASCADE,option_id TEXT NOT NULL REFERENCES poll_options(id) ON DELETE CASCADE,PRIMARY KEY(response_id,option_id));
+CREATE INDEX IF NOT EXISTS idx_options_poll ON poll_options(poll_id); CREATE INDEX IF NOT EXISTS idx_responses_poll ON responses(poll_id);
