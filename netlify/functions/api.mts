@@ -1,7 +1,7 @@
 import { getDatabase } from "@netlify/database";
 import type { Config, Context } from "@netlify/functions";
 import crypto from "node:crypto";
-const db=getDatabase(), J=(x:any,s=200)=>Response.json(x,{status:s});
+const J=(x:any,s=200)=>Response.json(x,{status:s});
 const sec=()=>Netlify.env.get("ADMIN_PASSWORD")||"";
 const sig=(v:string)=>crypto.createHmac("sha256",sec()).update(v).digest("hex");
 const okAdmin=(r:Request)=>(r.headers.get("authorization")||"")==="Bearer "+sig("wonderland-admin")&&!!sec();
@@ -9,6 +9,7 @@ export default async(r:Request,c:Context)=>{try{
  const path=new URL(r.url).pathname.replace(/^\/api\//,""),a=path.split("/").filter(Boolean);
  if(path==="admin/login"&&r.method==="POST"){const b:any=await r.json();if(!sec())return J({error:"관리자 비밀번호가 아직 설정되지 않았습니다."},503);if(b.password!==sec())return J({error:"비밀번호가 맞지 않습니다."},401);return J({token:sig("wonderland-admin")})}
  if(a[0]==="admin"&&!okAdmin(r))return J({error:"관리자 로그인이 필요합니다."},401);
+ const db=getDatabase();
  if(path==="admin/polls"&&r.method==="GET"){const rows=await db.sql`SELECT p.*,COUNT(r.id)::int responses FROM polls p LEFT JOIN responses r ON r.poll_id=p.id GROUP BY p.id ORDER BY p.created_at DESC`;return J({polls:rows})}
  if(path==="admin/polls"&&r.method==="POST"){const b:any=await r.json();if(!b.title?.trim()||!Array.isArray(b.options)||b.options.length<2)return J({error:"제목과 선택지 2개 이상을 입력해 주세요."},400);const pid=crypto.randomUUID().slice(0,8);await db.sql`INSERT INTO polls(id,title,description,mode,deadline,survey_type) VALUES(${pid},${b.title.trim()},${b.description||""},${b.mode==="multiple"?"multiple":"single"},${b.deadline||null},${b.surveyType==="event"?"event":"poll"})`;for(let i=0;i<b.options.length;i++){const oid=crypto.randomUUID().slice(0,12);await db.sql`INSERT INTO poll_options(id,poll_id,label,position) VALUES(${oid},${pid},${b.options[i]},${i})`}return J({id:pid},201)}
  if(a[0]==="admin"&&a[1]==="polls"&&a[2]&&a[3]==="status"&&r.method==="PATCH"){const b:any=await r.json(),pid=a[2];await db.sql`UPDATE polls SET closed=${!!b.closed} WHERE id=${pid}`;return J({ok:true})}
