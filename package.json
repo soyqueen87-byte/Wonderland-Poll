@@ -1,0 +1,5 @@
+{
+  "name":"wonderland-poll","version":"1.0.0","private":true,"type":"module",
+  "scripts":{"build":"mkdir -p dist && cp -R public/. dist/"},
+  "dependencies":{"@netlify/database":"latest","@netlify/functions":"latest"}
+}
