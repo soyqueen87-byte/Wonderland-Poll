@@ -32,7 +32,8 @@ export default async (req: Request) => {
       const extra=typeof r.extra_data==="string"?JSON.parse(r.extra_data||"{}"):(r.extra_data||{});
       return {
         "반":r.class_name||"",
-        "원아 이름":r.respondent_name||"",
+        "원아 한글 이름":r.respondent_name||"",
+        "원아 영어 이름":extra.englishName||"",
         "총 참가인원":extra.totalAttendees??"",
         "조부모 참석 여부":extra.grandparentsAttending||"",
         "조부모 인원":extra.grandparentCount??"",
@@ -40,10 +41,10 @@ export default async (req: Request) => {
         "응답시간":r.created_at?new Date(r.created_at).toLocaleString("ko-KR",{timeZone:"Asia/Seoul"}):""
       };
     });
-    const headers=["반","원아 이름","총 참가인원","조부모 참석 여부","조부모 인원","선택 응답","응답시간"];
+    const headers=["반","원아 한글 이름","원아 영어 이름","총 참가인원","조부모 참석 여부","조부모 인원","선택 응답","응답시간"];
     const sheet=XLSX.utils.json_to_sheet(rows,{header:headers});
     if(!rows.length) XLSX.utils.sheet_add_aoa(sheet,[headers],{origin:"A1"});
-    sheet["!cols"]=[{wch:18},{wch:18},{wch:16},{wch:20},{wch:16},{wch:34},{wch:24}];
+    sheet["!cols"]=[{wch:18},{wch:18},{wch:18},{wch:16},{wch:20},{wch:16},{wch:34},{wch:24}];
     const book=XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(book,sheet,"설문 응답");
     const bytes=XLSX.write(book,{bookType:"xlsx",type:"buffer"});
