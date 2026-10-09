@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "@netlify/database": "latest",
-    "@netlify/functions": "latest"
+    "@netlify/functions": "latest",
+    "xlsx": "^0.18.5"
   }
 }
